@@ -26,4 +26,5 @@ Example usage:
            f2c myapp.f
            gcc -o myapp myapp.c -lf2c
 
-The buildpack will detect your app as FORTRAN-77 if it has the file `Makefile` in the root. It will then run `make` to compile the app.
+The buildpack will detect your app as FORTRAN-77 if it has the file `Makefile` in the root.
+It will then run `make` to compile the app (see examples/Makefile for a template).

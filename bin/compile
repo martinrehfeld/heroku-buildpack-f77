@@ -1,4 +1,72 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-echo "-----> Nothing to do."
+# fail fast
+set -e
+
+# debug
+# set -x
+
+# clean up leaking environment
+unset GIT_DIR
+
+# config
+S3_BUCKET="f77-buildpack"
+F2C_VERSION="20110801"
+
+# parse and derive params
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+function error() {
+  echo " !     $*"
+  exit 1
+}
+
+function mktmpdir() {
+  dir=$(mktemp -t f77-$1-XXXX)
+  rm -rf $dir
+  mkdir -p $dir
+  echo $dir
+}
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+function package_download() {
+  engine="$1"
+  version="$2"
+  location="$3"
+
+  mkdir -p $location
+  package="http://${S3_BUCKET}.s3.amazonaws.com/$engine-$version.tgz"
+  curl $package -s -o - | tar xzf - -C $location
+}
+
+# S3 packages
+F2C_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/f2c-${F2C_VERSION}.tgz"
+
+# vendor directories
+VENDORED_F2C="$(mktmpdir f2c)"
+
+# download and unpack packages
+echo "-----> Fetching f2c binaries"
+package_download "f2c" "${F2C_VERSION}" "${VENDORED_F2C}"
+
+# setting up paths for building
+echo "-----> Setting up build environment"
+PATH="$VENDORED_F2C/bin:$BUILD_DIR/bin:$PATH"
+INCLUDE_PATH="$VENDORED_F2C/include"
+export CPATH="$INCLUDE_PATH"
+export CPPPATH="$INCLUDE_PATH"
+export LDPATH="$VENDORED_F2C/lib"
+
+# make
+cd $BUILD_DIR
+echo "-----> Compiling with Make"
+make 2>&1 | indent

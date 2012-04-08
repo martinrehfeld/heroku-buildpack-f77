@@ -65,7 +65,8 @@ PATH="$VENDORED_F2C/bin:$BUILD_DIR/bin:$PATH"
 INCLUDE_PATH="$VENDORED_F2C/include"
 export CPATH="$INCLUDE_PATH"
 export CPPPATH="$INCLUDE_PATH"
-export LDPATH="$VENDORED_F2C/lib"
+export F2CLIB_DIR="$VENDORED_F2C/lib"
+echo "exporting F2CLIB_DIR to be used in Makefile" | indent
 
 # make
 cd $BUILD_DIR

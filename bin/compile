@@ -3,6 +3,7 @@
 
 # fail fast
 set -e
+set -o pipefail
 
 # debug
 # set -x
